@@ -42,7 +42,7 @@ class Encoder:
     def write_image(self, img_path):
         imwrite(img_path, self.chunk_to_img_array())
         
-def encode(file_path: str, img_path):
+def encode(file_path: str, img_path: str):
     e = Encoder(file_path)
     e.read_file()
     e.chunkize()
