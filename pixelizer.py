@@ -2,14 +2,15 @@
 
 import argparse
 
-from src.encoder import encode
-from src.decoder import decode
+from src import FSCoder
 
 def main(file_path: str, out_file: str, decode_mode: bool):
+    f = FSCoder()
+    
     if decode_mode:
-        decode(file_path, out_file)
+        f.mp4_decode(file_path, out_file)
     else:
-        encode(file_path, out_file)
+        f.mp4_encode(file_path, out_file)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
