@@ -1,63 +1,32 @@
 import numpy as np
-from cv2 import imwrite
+import cv2
 
 from ..constants import IMG_DIM
 
-
 class Encoder:
+    @staticmethod
+    def unpack_bytes(chunk) -> list[bool]:
+        bool_array = np.unpackbits(np.frombuffer(chunk, dtype=np.uint8))
+        extra_bit = np.array([True], dtype=bool)
+        return np.concatenate((bool_array, extra_bit))
 
-    def __init__(self):
-        pass
+    @staticmethod
+    def reshape_bits(bits):
+        sqr = IMG_DIM ** 2
 
-    def file_to_binary_string(self, file_path: str):
-        rb = open(file_path, 'rb').read()
-        return ''.join(format(byte, '08b') for byte in rb) + '1'
-
-    def chunk_to_binary_string(self, chunk: bytes):
-        return ''.join(format(byte, '08b') for byte in chunk) + '1'
-
-    def encode_binary_string(slef, binary_string: str):
-        chunk_2d = np.zeros((IMG_DIM, IMG_DIM), dtype='b')
-
-        if len(binary_string) > IMG_DIM ** 2:
+        if len(bits) > sqr:
             raise ValueError(
-                f'Big chunk, received: {len(binary_string)} bits, capability: {IMG_DIM ** 2} bits')
+                f'Big chunk, received: {len(bits)} bits, capability: {IMG_DIM ** 2} bits')
 
-        column_index = 0
-        for idx, bit in enumerate(binary_string):
-            if idx != 0 and idx % IMG_DIM == 0:
-                column_index += 1
-            if bit == '1':
-                chunk_2d[column_index, (idx + IMG_DIM) % IMG_DIM] = 1
-                
-        return chunk_2d
+        to_pad = sqr - len(bits)
+        padded = np.pad(bits, (0, to_pad), mode='constant')
 
-    def to_img_array(self, chunk_2d):
-        arr = np.empty((IMG_DIM, IMG_DIM, 3), dtype=np.uint8)
+        return np.reshape(padded, (IMG_DIM, IMG_DIM)).astype(np.uint8) * 255
 
-        for col_index, col in enumerate(chunk_2d):
-            for pixel_index, pixel in enumerate(col):
-                value = 0 if pixel == 1 else 255
-                arr[col_index, pixel_index, 0] = value
-                arr[col_index, pixel_index, 1] = value
-                arr[col_index, pixel_index, 2] = value
+    @staticmethod
+    def make_img(image_data):
+        return cv2.cvtColor(image_data, cv2.COLOR_GRAY2BGR)
 
-        return arr
-
-    def write_image(self, binary_string, img_path):
-        imwrite(img_path, self.to_img_array(self.encode_binary_string(binary_string)))
-
-
-def encode(file_path: str, img_path: str):
-    e = Encoder()
-    binary_string = e.file_to_binary_string(file_path)
-    e.write_image(binary_string, img_path)
-
-
-def encode_chunk_to_img_array(chunk: bytes):
-    e = Encoder()
-    binary_string = e.chunk_to_binary_string(chunk)
-    chunk_2d = e.encode_binary_string(binary_string)
-    
-    # return image array from bytes
-    return e.to_img_array(chunk_2d)
+    @staticmethod
+    def encode_bytes_to_img(chunk):
+        return Encoder.make_img(Encoder.reshape_bits(Encoder.unpack_bytes(chunk)))

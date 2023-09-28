@@ -1,3 +1,3 @@
-IMG_DIM = 250
+IMG_DIM = 1024
 FPS = 1
 CHUNK_SIZE_B = ((IMG_DIM ** 2) // 8) - 1
