@@ -1,6 +1,6 @@
 # Pixelizer (POC)
 
-This repository contains a Python script that allows you to encode any kind of file into a series of black and white images representing the file's bits. It also provides functionality to decode these images back into the original data.
+This repository contains a Python script that allows you to encode any kind of file or data into a series of black and white images representing the file's bits. It also provides functionality to decode these images back into the original data.
 
 ## Introduction
 
